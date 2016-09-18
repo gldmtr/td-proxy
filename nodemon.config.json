@@ -1,0 +1,12 @@
+{
+  "verbose": true,
+  "exec": "npm run build && npm start",
+  "watch": [
+    "src/*.*",
+    "lib/*.js",
+    "index.js",
+    "index.html"
+  ],
+  "ext": "js json ts html"
+}
+
