@@ -1,29 +1,27 @@
-const { app, BrowserWindow } = require('electron');
+const { app, Tray, BrowserWindow } = require('electron');
+const path = require('path');
 
 const config = require('./lib/config');
-const httpServer = require('./lib/http-server');
-const httpsServer = require('./lib/https-server');
-const connectHandler = require('./lib/connect-handler');
+const Proxy = require('./lib/proxy');
 
-httpsServer.getInstance().then((server) => {
-  server.listen(config.httpsPort);
-});
+const proxy = new Proxy();
+proxy.start();
 
-httpServer.on('connect', connectHandler);
-httpServer.listen(config.httpPort);
-
-let mainWindow;
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
+let appIcon = null;
+let mainWindow = null;
 
 app.on('ready', () => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+  });
+  appIcon = new Tray(config.appIconPath);
+
+  proxy.on('prescreenshot', () => {
+    appIcon.setImage(path.join(__dirname, 'icons', 'red.png'));
+  });
+  proxy.on('postscreenshot', () => {
+    appIcon.setImage(path.join(__dirname, 'icons', 'green.png'));
   });
 
   mainWindow.loadURL(`file://${__dirname}/index.html`);
@@ -32,3 +30,10 @@ app.on('ready', () => {
     mainWindow = null;
   });
 });
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
